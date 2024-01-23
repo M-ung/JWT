@@ -20,7 +20,7 @@ public class User {
     private String roles;
 
     public List<String> getRoleList() {
-        if(this.roles.length() > 0) {
+        if (this.roles.length() > 0) {
             return Arrays.asList(this.roles.split(","));
         }
         return new ArrayList<>();

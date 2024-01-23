@@ -1,5 +1,6 @@
 package com.example.jwt.config;
 
+import com.example.jwt.config.jwt.JwtAuthenticationFilter;
 import com.example.jwt.filter.MyFilter1;
 import com.example.jwt.filter.MyFilter3;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic
                         .disable() // basic 방식은 id와 pw를 보내기 떄문에 노출이 될 가능성이 크다. 그래서 bearer token 방법을 쓴다.
                 )
+                .addFilter(new JwtAuthenticationFilter(authentication -> authentication)) // AuthenticationManger
 //                .apply(new MyCustomDsl()) // 커스텀 필터 등록
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers("/api/v1/user/**")
