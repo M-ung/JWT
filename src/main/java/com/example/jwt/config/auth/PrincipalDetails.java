@@ -1,11 +1,11 @@
 package com.example.jwt.config.auth;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.example.jwt.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class PrincipalDetails implements UserDetails {
 
@@ -17,15 +17,6 @@ public class PrincipalDetails implements UserDetails {
 
     public User getUser() {
         return user;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-        user.getRoleList().forEach(r-> {
-            authorities.add(()->r);
-        });
-        return authorities;
     }
 
     @Override
@@ -56,5 +47,16 @@ public class PrincipalDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        user.getRoleList().forEach(r -> {
+            authorities.add(() -> {
+                return r;
+            });
+        });
+        return authorities;
     }
 }
