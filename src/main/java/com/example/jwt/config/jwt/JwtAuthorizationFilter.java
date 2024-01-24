@@ -30,7 +30,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     // 인증이나 권한이 필요한 주소 요청이 있을 때 해당 필터를 타게 된다.
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String jwtHeader = request.getHeader("Authorization");
+        String jwtHeader = request.getHeader(JwtProperties.HEADER_STRING);
 
         // header가 있는지 확인
         if(jwtHeader == null || !jwtHeader.startsWith("Bearer")) {
@@ -40,8 +40,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
 
         // JWT 토큰을 검증을 해서 정상적인 사용자인지 확인
-        String jwtToken = request.getHeader("Authorization").replace("Bearer ", "");
-        String username = JWT.require(Algorithm.HMAC512("cos")).build().verify(jwtToken).getClaim("username").asString(); // jwtToken에서 username을 꺼내온다.
+        String jwtToken = request.getHeader(JwtProperties.HEADER_STRING).replace( JwtProperties.TOKEN_PREFIX, "");
+        String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("username").asString(); // jwtToken에서 username을 꺼내온다.
 
         // 서명이 정상적으로 됨
         if (username != null) {
