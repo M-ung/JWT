@@ -1,5 +1,8 @@
 package com.example.jwt.config.jwt;
+import java.util.Date;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.example.jwt.config.auth.PrincipalDetails;
 import com.example.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +82,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // 비밀번호를 잘못 입력하면 401 에러가 뜨며 해당 메서드가 실행이 안된다.
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        System.out.println("[successfulAuthentication]");
-        super.successfulAuthentication(request, response, chain, authResult);
+        System.out.println("[successfulAuthentication] 인증이 완료됨.");
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+
+        // RSA 방식이 아닌, Hash 암호 방식이다.
+        String jwtToken = JWT.create()
+//                .withSubject(principalDetails.getUsername())
+                .withSubject("cos토큰")
+                .withExpiresAt(new Date(System.currentTimeMillis() + (600000)*10)) // 만료 시간 10분
+                .withClaim("id", principalDetails.getUser().getId())
+                .withClaim("username", principalDetails.getUser().getUsername())
+                .sign(Algorithm.HMAC512("cos")); // 고유한 값
+
+        response.addHeader("Authorization", "Bear " + jwtToken);
     }
 }
