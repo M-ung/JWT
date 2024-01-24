@@ -1,7 +1,9 @@
 package com.example.jwt.config;
 
 import com.example.jwt.config.jwt.JwtAuthenticationFilter;
+import com.example.jwt.config.jwt.JwtAuthorizationFilter;
 import com.example.jwt.filter.MyFilter3;
+import com.example.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,7 @@ import org.springframework.security.web.context.SecurityContextPersistenceFilter
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CorsConfig corsConfig;
+    private final UserRepository userRepository;
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -33,7 +36,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain configure(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         return http
-                .addFilterBefore(new MyFilter3(), SecurityContextPersistenceFilter.class)
+//                .addFilterBefore(new MyFilter3(), SecurityContextPersistenceFilter.class)
                 .csrf(CsrfConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션을 사용하지 않겠다.
@@ -46,6 +49,7 @@ public class SecurityConfig {
                         .disable() // basic 방식은 id와 pw를 보내기 떄문에 노출이 될 가능성이 크다. 그래서 bearer token 방법을 쓴다.
                 )
                 .addFilter(new JwtAuthenticationFilter(authenticationManager))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository))
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers("/api/v1/user/**")
                         .access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")

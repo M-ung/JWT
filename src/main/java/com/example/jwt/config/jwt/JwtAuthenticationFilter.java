@@ -28,8 +28,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // login 요청을 하면 로그인 시도를 위해서 실행되는 함수
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        System.out.println("JwtAuthenticationFilter: 로그인 시도중");
-
         // 1. username, password 를 받아서
         // 2. 정상인지 로그인 시도를 해본다. authenticationManager로 로그인 시도를 하면,
         // PrincipalDetailsService가 호출된다.
@@ -48,8 +46,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             ObjectMapper om = new ObjectMapper();
             User user = om.readValue(request.getInputStream(), User.class);
-            System.out.println(user);
-
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
 
 
@@ -58,12 +54,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             // DB에 있는 username과 password가 일치한다.
             Authentication authentication = authenticationManager.authenticate(authenticationToken); // 내 로그인 한 정보가 담긴다.
 
-            System.out.println("authentication = " + authentication.getPrincipal());
-
             PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal(); // 여기서 오류가 터진다.
-
-            System.out.println("[로그인 정상적으로 되었는지 확인]");
-            System.out.println(principalDetails.getUser().getUsername()); // 제대로 출력되면 정상적으로 로그인이 되었다는 뜻
 
             // authentication 객체가 session 영역에 저장을 해야 하고 그 방법이 return 해주면 된다.
             // 리턴의 이유는 권한 관리를 security가 대신 해주기 때문에 편하려고 하는 거다.
@@ -82,7 +73,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // 비밀번호를 잘못 입력하면 401 에러가 뜨며 해당 메서드가 실행이 안된다.
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        System.out.println("[successfulAuthentication] 인증이 완료됨.");
         PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
 
         // RSA 방식이 아닌, Hash 암호 방식이다.
@@ -94,6 +84,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .withClaim("username", principalDetails.getUser().getUsername())
                 .sign(Algorithm.HMAC512("cos")); // 고유한 값
 
-        response.addHeader("Authorization", "Bear " + jwtToken);
+        response.addHeader("Authorization", "Bearer " + jwtToken);
     }
 }
