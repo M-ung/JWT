@@ -3,6 +3,8 @@ package com.example.jwt.config.jwt;
 import com.example.jwt.config.auth.PrincipalDetails;
 import com.example.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -47,21 +49,37 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
 
+
             // PrincipalDetailsService 의 loadUserByUsername() 함수가 실행된다.
+            // 그 후 정상이면 authentication이 리턴된다.
+            // DB에 있는 username과 password가 일치한다.
             Authentication authentication = authenticationManager.authenticate(authenticationToken); // 내 로그인 한 정보가 담긴다.
 
             System.out.println("authentication = " + authentication.getPrincipal());
 
             PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal(); // 여기서 오류가 터진다.
 
-            System.out.println("2222222==================================================2222");
-            System.out.println("principalDetails = " + principalDetails.getUser().getUsername());
+            System.out.println("[로그인 정상적으로 되었는지 확인]");
+            System.out.println(principalDetails.getUser().getUsername()); // 제대로 출력되면 정상적으로 로그인이 되었다는 뜻
 
+            // authentication 객체가 session 영역에 저장을 해야 하고 그 방법이 return 해주면 된다.
+            // 리턴의 이유는 권한 관리를 security가 대신 해주기 때문에 편하려고 하는 거다.
+            // 굳이 JWT 토큰을 사용하면서 세션을 만들 이유가 없다. 근데 단지 권한 처리 때문에 session에 넣어준다.
             return authentication;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+
+
         return null;
+    }
+    // attemptAuthentication 실행 후 인증이 정상적으로 되었으면 successfulAuthentication 함수가 실행된다.
+    // JWT 토큰을 만들면서 request 요청한 사용자에게 JWT 토큰을 response 해주면 된다.
+    // 비밀번호를 잘못 입력하면 401 에러가 뜨며 해당 메서드가 실행이 안된다.
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        System.out.println("[successfulAuthentication]");
+        super.successfulAuthentication(request, response, chain, authResult);
     }
 }
